@@ -56,7 +56,8 @@ namespace Weixin_BotApi.Service
         {
             string response = "";
             if (requestContent.Length < 10 && 
-                    (requestContent.Contains("hi") || requestContent.Contains("Hi") || requestContent.Contains("你好")))
+                    (requestContent.Contains("hi") || requestContent.Contains("Hi") || requestContent.Contains("你好")
+                                                   || requestContent.Contains("Hello") || requestContent.Contains("hello")))
             {
                 response = "Hi, 我是小夏，很高兴能为您服务，请问有什么我可以帮助您的吗？ 理财问我就对啦！";
             }
@@ -84,10 +85,10 @@ namespace Weixin_BotApi.Service
             {
                 responseContent = "请把您要查询的基金名称或者基金的满足条件告诉小夏, 小夏来帮您进一步查询。";
             }
-            else if (responseContent.Contains("Internal Server Error"))
-            {
-                responseContent = "不好意思，小夏需要您给出准确的基金名称，才能帮您进一步查询哦。";
-            }
+            //else if (responseContent.Contains("Internal Server Error"))
+            //{
+            //    responseContent = "不好意思，小夏需要您给出准确的基金名称，才能帮您进一步查询哦。";
+            //}
 
             loginfo.Info("自定义返回消息内容：" + responseContent);
             return responseContent;
