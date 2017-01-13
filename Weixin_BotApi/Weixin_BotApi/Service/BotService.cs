@@ -70,7 +70,7 @@ namespace Weixin_BotApi.Service
         }
 
         /// <summary>
-        ///  优化语气
+        ///  优化回复信息
         /// </summary>
         /// <param name=""></param>
         /// <returns></returns>
@@ -83,6 +83,10 @@ namespace Weixin_BotApi.Service
             else if (responseContent.Contains("请给出您要查询的基金名称或者您想要查询的基金"))
             {
                 responseContent = "请把您要查询的基金名称或者基金的满足条件告诉小夏, 小夏来帮您进一步查询。";
+            }
+            else if (responseContent.Contains("Internal Server Error"))
+            {
+                responseContent = "不好意思，小夏需要您给出准确的基金名称，才能帮您进一步查询哦。";
             }
 
             loginfo.Info("自定义返回消息内容：" + responseContent);
