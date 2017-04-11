@@ -9,7 +9,7 @@ namespace Weixin_BotApi.Service
 {
     public class WechatImageService
     {
-        static ILog loginfo = LogManager.GetLogger(typeof(BotService));
+        static ILog loginfo = LogManager.GetLogger(typeof(WechatImageService));
 
         public static void UploadImg()
         {
@@ -36,14 +36,6 @@ namespace Weixin_BotApi.Service
             //    loginfo.Info("新增图片素材出错");
             //    return;
             //}
-        }
-
-        public static string GetAccessToken()
-        {
-            var ret = CommonApi.GetToken(AppSettings.Wechat_AppID, AppSettings.Wechat_Secret);
-
-            //返回token
-            return ret.access_token;
         }
     }
 }

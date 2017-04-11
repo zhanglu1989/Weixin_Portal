@@ -5,7 +5,8 @@ using Senparc.Weixin.MP.MessageHandlers;
 using log4net;
 using System.Text;
 using Weixin_BotApi.Service;
-using Senparc.Weixin.MP;
+using System.Threading.Tasks;
+using System;
 
 namespace Weixin_BotApi.Common
 {
@@ -48,35 +49,17 @@ namespace Weixin_BotApi.Common
         /// <returns></returns>
         public override IResponseMessageBase OnTextRequest(RequestMessageText requestMessage)
         {
-            loginfo.Info("进入OnTextRequest");
-            loginfo.Info("用户openid：" + requestMessage.FromUserName);
-            loginfo.Info("发送的问题：" + requestMessage.Content);
-
-            string botInfo = "";
-
-            //处理简单对话
-            botInfo = BotService.HandleSimpleDialog(requestMessage.Content);
-
-            //测试上传图片
-            WechatImageService.UploadImg();
-
-            if (string.IsNullOrEmpty(botInfo))
+            try
             {
-                //调用api接口，等待返回。
-                botInfo = BotService.GetBotInfo(requestMessage.Content, requestMessage.FromUserName);
-                loginfo.Info("接收到huaxiabot返回的内容：" + botInfo);
+                //开启task, 实现客服接口异步回复消息。       
+                Task.Factory.StartNew(() => GetBotAsyn(requestMessage));
+                return null;
             }
-
-            botInfo = BotService.HandleInvalidContent(botInfo);
-            var responseMessage = base.CreateResponseMessage<ResponseMessageText>();
-            responseMessage.Content = botInfo;
-
-            loginfo.Info("回复给用户的信息：" + responseMessage.Content);
-
-            //如果超过5s则失败。
-            //可以用客服机制解决这个问题（48小时内有效），主动推送信息。这条回复空即可。
-
-            return responseMessage;
+            catch (Exception ex)
+            {
+                loginfo.Info("异常---------" + ex.Message);
+                return null;
+            }
         }
 
         /// <summary>
@@ -86,20 +69,8 @@ namespace Weixin_BotApi.Common
         /// <returns></returns>
         public override IResponseMessageBase OnEventRequest(IRequestMessageEventBase requestMessage)
         {
-            loginfo.Info("OnEventRequest");
-            loginfo.Info("用户openid：" + requestMessage.FromUserName);
-
             var responseMessage = base.CreateResponseMessage<ResponseMessageText>();
             responseMessage.Content = "您好，欢迎您关注华夏基金小夏，小夏非常乐意为您服务。";
-
-            //回复图片信息
-
-
-
-            loginfo.Info("回复给用户的信息：" + responseMessage.Content);
-
-            //如果超过5s则失败。
-            //可以用客服机制解决这个问题（48小时内有效），主动推送信息。这条回复空即可。
 
             return responseMessage;
         }
@@ -110,6 +81,7 @@ namespace Weixin_BotApi.Common
         public override void OnExecuting()
         {
             loginfo.Info("进入OnExecuting");
+            base.OnExecuting();
             //if (RequestMessage.FromUserName == "olPjZjsXuQPJoV0HlruZkNzKc91E")
             //{
             //    CancelExcute = true; //终止此用户的对话
@@ -122,6 +94,66 @@ namespace Weixin_BotApi.Common
 
             //    ResponseMessage = responseMessage;//设置返回对象
             //}
+        }
+
+        /// <summary>
+        /// 触发OnTextRequest后进入该方法
+        /// </summary>
+        public override void OnExecuted()
+        {
+            loginfo.Info("进入OnExecuted");
+            base.OnExecuted();
+        }
+
+        /// <summary>
+        /// 异步获取信息
+        /// </summary>
+        private void GetBotAsyn(RequestMessageText requestMessage)
+        {
+            try
+            {
+                loginfo.Info("开启异步线程");
+                string tableResponse = "";
+                string faqResponse = "";
+                string finalResponse = "";
+
+                //第一步：处理简单对话
+                tableResponse = BotTableService.HandleSimpleDialog(requestMessage.Content);
+
+                //第二步：进入table engine，并将结果存入数据库
+                if (string.IsNullOrEmpty(tableResponse))
+                {
+                    tableResponse = BotTableService.GetEngineResponse(requestMessage.Content, requestMessage.FromUserName);
+                    loginfo.Info("接收到table engine返回的内容：" + tableResponse);
+                }
+                tableResponse = BotTableService.HandleInvalidContent(tableResponse);
+
+                //第三步：进入faq engine，并将结果存入数据库
+                faqResponse = BotFQAService.GetEngineResponse(requestMessage.Content, requestMessage.FromUserName);
+                loginfo.Info("接收到faq engine返回的内容：" + faqResponse);
+
+                //第四步：返回结果。
+                if (tableResponse.Equals("FAQ"))
+                {
+                    finalResponse = faqResponse;
+                }
+                else
+                {
+                    finalResponse = tableResponse;
+                }
+
+                var responseMessage = base.CreateResponseMessage<ResponseMessageText>();
+                responseMessage.Content = finalResponse;
+                loginfo.Info("回复给用户的信息：" + responseMessage.Content);
+                //获取access token
+                string accessToken = CommonService.GetAccessToken();
+                //发送客服消息
+                CustomerService.SendText(accessToken, requestMessage.FromUserName, finalResponse);
+            }
+            catch (System.Exception ex)
+            {
+                loginfo.Info("异常--" + ex.Message + "---" + ex.StackTrace);
+            }
         }
     }
 }

@@ -9,7 +9,7 @@ namespace Weixin_BotApi.Controllers
 {
      public partial class WechatCallbackController : Controller
      {
-         public static readonly string Token = WebConfigurationManager.AppSettings["Token"];//与微信公众账号后台的Token设置保持一致，区分大小写。
+        public static readonly string Token = WebConfigurationManager.AppSettings["Token"];//与微信公众账号后台的Token设置保持一致，区分大小写。
         public static readonly string EncodingAESKey = WebConfigurationManager.AppSettings["EncodingAESKey"];//与微信公众账号后台的EncodingAESKey设置保持一致，区分大小写。
         public static readonly string AppId = WebConfigurationManager.AppSettings["AppID"];//与微信公众账号后台的AppId设置保持一致，区分大小写。
         ILog loginfo = LogManager.GetLogger(typeof(WechatCallbackController));
@@ -46,20 +46,20 @@ namespace Weixin_BotApi.Controllers
                  return Content("参数错误！");
              }
 
-             loginfo.Info("正常进入Post");
              postModel.Token = Token;//根据自己后台的设置保持一致
              postModel.EncodingAESKey = EncodingAESKey;//根据自己后台的设置保持一致
              postModel.AppId = AppId;//根据自己后台的设置保持一致
-             loginfo.Info("参数:" + postModel.Token + " ," + postModel.EncodingAESKey + " ," + postModel.AppId);
+             loginfo.Info("参数信息:" + postModel.Token + " ," + postModel.EncodingAESKey + " ," + postModel.AppId);
 
              //自定义MessageHandler，对微信请求的详细判断操作都在这里面。
              var messageHandler = new CustomMessageHandler(Request.InputStream, postModel);//接收消息
-
-            loginfo.Info("执行微信处理前--");
             messageHandler.Execute();//执行微信处理过程
-            loginfo.Info("执行微信处理后--");
 
-            return Content(messageHandler.ResponseDocument.ToString());//返回结果
+            //直接返回空串，再利用客服接口推送消息
+            return null;
+
+            //return new WeixinResult(messageHandler);//返回结果
+            //return Content(messageHandler.ResponseDocument.ToString());//返回结果
         }
-     }
+    }
 }
