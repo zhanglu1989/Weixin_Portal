@@ -12,9 +12,8 @@ namespace Weixin_BotApi.Controllers
         public ActionResult Index()
         {
             ViewBag.Title = "Home Page";
-
             ILog loginfo = LogManager.GetLogger(typeof(HomeController));
-            loginfo.Error("测试！");
+            loginfo.Error("测试，服务开启！");
 
             return View();
         }

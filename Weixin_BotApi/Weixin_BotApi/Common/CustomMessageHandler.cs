@@ -7,6 +7,7 @@ using System.Text;
 using Weixin_BotApi.Service;
 using System.Threading.Tasks;
 using System;
+using Weixin_BotApi.Controllers;
 
 namespace Weixin_BotApi.Common
 {
@@ -113,29 +114,27 @@ namespace Weixin_BotApi.Common
             try
             {
                 loginfo.Info("开启异步线程");
-                string tableResponse = "";
-                string faqResponse = "";
+                string tableResponse = "我是table默认回复";
+                string faqResponse = "我是faq默认回复";
                 string finalResponse = "";
 
                 //第一步：处理简单对话
                 tableResponse = BotTableService.HandleSimpleDialog(requestMessage.Content);
-
                 //第二步：进入table engine，并将结果存入数据库
                 if (string.IsNullOrEmpty(tableResponse))
                 {
                     tableResponse = BotTableService.GetEngineResponse(requestMessage.Content, requestMessage.FromUserName);
-                    loginfo.Info("接收到table engine返回的内容：" + tableResponse);
+                    loginfo.Info("get table engine back:" + tableResponse);
                 }
                 tableResponse = BotTableService.HandleInvalidContent(tableResponse);
-
                 //第三步：进入faq engine，并将结果存入数据库
-                faqResponse = BotFQAService.GetEngineResponse(requestMessage.Content, requestMessage.FromUserName);
-                loginfo.Info("接收到faq engine返回的内容：" + faqResponse);
-
+                loginfo.Info("before faq engine");
+                faqResponse = BotFQAService.GetEngineResponse(requestMessage.Content);
+                loginfo.Info("get faq engine response:" + faqResponse);
                 //第四步：返回结果。
                 if (tableResponse.Equals("FAQ"))
                 {
-                    finalResponse = faqResponse;
+                    finalResponse = faqResponse; 
                 }
                 else
                 {
@@ -144,7 +143,7 @@ namespace Weixin_BotApi.Common
 
                 var responseMessage = base.CreateResponseMessage<ResponseMessageText>();
                 responseMessage.Content = finalResponse;
-                loginfo.Info("回复给用户的信息：" + responseMessage.Content);
+                loginfo.Info("back to user:" + responseMessage.Content);
                 //获取access token
                 string accessToken = CommonService.GetAccessToken();
                 //发送客服消息
@@ -152,7 +151,7 @@ namespace Weixin_BotApi.Common
             }
             catch (System.Exception ex)
             {
-                loginfo.Info("异常--" + ex.Message + "---" + ex.StackTrace);
+                loginfo.Info("exception--" + ex.Message + "---" + ex.StackTrace);
             }
         }
     }

@@ -16,6 +16,9 @@ namespace Weixin_BotApi.Models
         //客户问的问题
         public string Question { get; set; }
 
+        //对应的标准问题
+        public string StandardQuestion { get; set; }
+
         //faq engine 给出的答案
         public string Answer { get; set; }
 

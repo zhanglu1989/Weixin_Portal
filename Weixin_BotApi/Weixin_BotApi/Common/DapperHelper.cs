@@ -16,7 +16,7 @@ namespace Weixin_BotApi.Common
         {
             string connStr = connectSql;
             IDbConnection conn = new SqlConnection(connStr);
-            string query = "INSERT INTO FAQEngine(Question, Answer, Score, Threshold, Datetime) VALUES(@question, @answer, @score, @threshold, @datetime)";
+            string query = "INSERT INTO FAQEngine(Question, StandardQuestion, Answer, Score, Threshold, Datetime) VALUES(@question, @standardquestion, @answer, @score, @threshold, @datetime)";
             conn.Execute(query, faqModel);
             conn.Close();
         }
